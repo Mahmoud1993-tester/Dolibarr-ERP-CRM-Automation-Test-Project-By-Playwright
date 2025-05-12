@@ -3,7 +3,7 @@ const {test, expect} = require ('@playwright/test')
 
 test("Valid Login", async({page}) => {
     // Navigate to Login Page
-    await page.goto("https://demo.dolibarr.org/public/demo/index.php")
+    await page.goto('/')
     await page.click("div.demothumbtext")
     await expect(page).toHaveURL(/urlfrom/)
 
