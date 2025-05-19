@@ -1,23 +1,21 @@
 // @ts-check
-const {test, expect} = require ('@playwright/test')
+const {test, expect} = require ('@playwright/test');
+import { LoginPage } from '../pages/login-page';
 
 test("Valid Login", async({page}) => {
     // Navigate to Login Page
-    await page.goto('/')
-    await page.click("div.demothumbtext")
-    await expect(page).toHaveURL(/urlfrom/)
+    const loginpage = new LoginPage(page);
+    await loginpage.goto_login_page();
+    await expect(page).toHaveURL(/urlfrom/);
 
     // Login Page 
-    await page.fill("#username", "demo")
-    await page.fill("#password", "demo")
-    await page.locator("input.button").click()
+    await loginpage.login('demo', 'demo');
 
     // Wait Profile Page 
-    await page.waitForTimeout(5000)
+    await page.waitForTimeout(5000);
 
     // Profile Page check
-    await expect(page).toHaveURL(/mainmenu=home/)
-    const dashboardCheck = page.locator("div.menu_titre").first()
-    await expect(dashboardCheck).toHaveText("My Dashboard")
+    await expect(page).toHaveURL(/mainmenu=home/);
+    await loginpage.messageAssert("My Dashboard");
 
 } )
