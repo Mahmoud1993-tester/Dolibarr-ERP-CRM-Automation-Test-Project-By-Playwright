@@ -1,22 +1,22 @@
 // @ts-check
-const {test, expect} = require('@playwright/test')
+const {test, expect} = require('@playwright/test');
+import { InvalidLogin } from '../pages/invalid-login';
 
 test ("Invalid Login", async({page}) => {
+
+    const invalidLogin = new InvalidLogin(page);
     // Navigate to Login Page
-    await page.goto('/')
-    await page.click("div.demothumbtext")
+    await invalidLogin.loginPage();
 
     // Login Page 
-    await page.fill("#username", "wronguser")
-    await page.fill("#password", "wronguser")
-    await page.locator("input.button").click()
+    await invalidLogin.login('wronguser', 'wronguser');
+    await invalidLogin.loginButtonSubmit();
 
     // Wait Profile Page 
-    await page.waitForTimeout(5000)
+    await page.waitForTimeout(5000);
 
     // Check the Invalid Login Message Is Displayed 
-    const invalidMessage = page.locator('div.jnotify-message > div')
-    await expect(invalidMessage).toHaveText("Bad value for login or password")
+    await invalidLogin.errorMessage("Bad value for login or password");
 
 
 
