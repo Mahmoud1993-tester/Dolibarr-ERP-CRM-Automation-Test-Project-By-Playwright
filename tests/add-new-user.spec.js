@@ -3,33 +3,37 @@ const{test, expect} = require('@playwright/test')
 import Tesseract from 'tesseract.js';
 import fs from 'fs';
 import sharp from 'sharp';
+import { AddNewUser } from '../pages/add-new-user';
 
 test("Add New User", async({page})=> {
+
+  const addnewuser = new AddNewUser(page);
   // Navigate to Login 
-  await page.goto('https://ieasoft.mgc01.ma-gestion-cloud.fr');
+  await addnewuser.LoginPage();
+
+
 
   // Step 1: Login with credentials
-  await page.fill('#username', 'msaber93.egy@gmail.com');
-  await page.fill('#password', 'Dolibarr@1993');
+  await page.waitForLoadState('networkidle');
+  await addnewuser.LoginData('msaber93.egy@gmail.com', 'Dolibarr@1993');
 
 
-  // Step 2: Wait for the image with code to appear
-  const imageLocator = page.locator('#img_securitycode'); 
-  await imageLocator.waitFor();
+  // Step 2: Wait for the image with code to appear and take a screenshot
+  await addnewuser.captchaImage();
   await page.waitForTimeout(2000);
- 
 
-  // Step 3: Take screenshot of the image
-  const imageBuffer = await imageLocator.screenshot();
+  const imageBuffer = await addnewuser.imageLocator.screenshot();
 
  
   // Step 4: Use OCR to read the image 
-  const resizedBuffer = await sharp(imageBuffer)
-  .resize({ width: 500 })
+ const resizedBuffer = await sharp(imageBuffer)
+  .resize({ width: 400 , height: 200})
   .grayscale()
+  .threshold(128)
   .sharpen()
   .normalize()
   .toBuffer();
+
 
   fs.writeFileSync('captcha-resized.png', resizedBuffer);
 
@@ -42,12 +46,13 @@ test("Add New User", async({page})=> {
   console.log('Cleaned Code:', code);
 
   // Wait 
-  await page.waitForTimeout(5000);
+  await page.waitForTimeout(2000);
 
+  
   // Step 5: Enter the code
-  await page.fill('#securitycode', code);
+  await addnewuser.codeInputField(code);
   await page.waitForTimeout(1000);
-  await page.click('input[type="submit"]');
+  await addnewuser.loginClicKButton();
 
   // wait 
   await page.waitForLoadState('networkidle');
@@ -56,41 +61,27 @@ test("Add New User", async({page})=> {
 
 
   // Create New User 
-  await page.click("//a[@title='Users & Groups']"); // click Users Section
-  await page.click("//a[@title='New user']"); // Click New User
+  await addnewuser.createNewUser();
+
   
-  // Enter New User Info
-  await page.selectOption("#civility_code", 'MR'); // Title Selection
-  await page.fill("#lastname", "Saber"); // Last Name 
-  await page.fill("#firstname", "Mahmoud");  // First Name
+  // Enter New User 
+  await addnewuser.userPersonalInfo('Saber', 'Ahmed', 'Saber9256');
+  
+  await addnewuser.validatyInfo('05/16/2025', '05/25/2025');
+ 
+  await addnewuser.passwordInfo('01116692166@dolivarr');
 
-  await page.fill("#login", "Saber2025") // Login Name
-  await page.selectOption("#gender", 'man'); // Gender Selection
+  await addnewuser.accomdInfo('Egypt, Cairo', '11765');
 
-  await page.selectOption("#fk_user", "AdminUser"); // Supervisor 
+  await addnewuser.contactInfo('0553100676', '01116692166', 'yonod11396@daxiake.com');
+  
+  await addnewuser.jobInfo('Software Test Engineer', '05/25/2025', '05/25/2027');
 
-  await page.fill("#datestartvalidity", "05/16/2025"); // Date Start Validity
-  await page.fill("#dateendvalidity", "05/25/2025");   // Date End Validity
+  await addnewuser.createUserButton();
 
-  await page.fill("#password", "01116692166@dolibarr"); // Password
-
-  await page.fill("#address", "Egypt, Cairo"); // Address
-  await page.fill("#zipcode", "11765");        // Zipcode
-
-  await page.selectOption("#selectcountry_id", "28");  // Country Selection
-  await page.selectOption("#state_id", "ACT - Australia Capital Territory"); // State Selection
-  await page.fill("//input[@name='office_phone']", "0553100676");   // Office Phone
-  await page.fill("//input[@name='user_mobile']", "01116692166");   // Mobile Number
-  await page.fill("//input[@name='email']", "wirok68052@daupload.com");   // E-mail
-
-  await page.fill("//input[@name='job']", "Software Test Engineer"); // Job Title
-  await page.fill("#dateemployment", "05/25/2025");    // Employment Start Date
-  await page.fill("#dateemploymentend", "05/25/2027"); // Employment End Date
-
-  await page.click("//input[@name='save']");  // Click Create Account Button 
-
-  // wait 
-  await page.waitForTimeout(5000);
+  // Asseretion User Created
+  await page.waitForTimeout(10000);
+  await addnewuser.successCreatingAccount();
 
 
-} )
+})
